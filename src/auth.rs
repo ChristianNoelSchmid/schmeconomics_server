@@ -1,9 +1,17 @@
+use lazy_static::lazy_static;
+use std::env;
+
 use dotenvy::dotenv;
+use regex::Regex;
 use rocket::{
     http::{Cookie, Status},
     request::{FromRequest, Outcome},
 };
-use std::env;
+
+lazy_static! {
+    static ref AUTH_RE: Regex =
+        Regex::new(r"(?i)basic\s*(?-i)(?P<tok>[^;]+)(;(?P<user_id>\d+))?").unwrap();
+}
 
 pub struct AuthUser(pub i64);
 
@@ -15,21 +23,22 @@ impl<'r> FromRequest<'r> for AuthUser {
     type Error = AuthUserError;
 
     async fn from_request(req: &'r rocket::Request<'_>) -> Outcome<Self, Self::Error> {
-        // Load environment data from .env file in root directory
         dotenv().ok();
         let secret = env::var("SECRET").expect("SECRET must be set");
-
-        // Try to retrieve the user id and access key from the request parameters
+        let key;
+        let id;
+        key = req.query_value::<String>("api-key");
+        id = req.query_value::<i64>("user-id");
         let mut found_id = None;
-        if let Some(Ok(key)) = req.query_value::<String>("api_key") {
-            if let Some(Ok(id)) = req.query_value::<i64>("user_id") {
+
+        if let Some(Ok(key)) = key {
+            if let Some(Ok(id)) = id {
                 if key == secret {
                     found_id = Some(id);
                 }
             }
         }
 
-        // Try to retrieve the user id and access key from the request cookies
         if let Some(cookie) = req.cookies().get("secret") {
             let mut segs = cookie.value().split(';');
             if let Some(scrt) = segs.next() {
@@ -43,8 +52,6 @@ impl<'r> FromRequest<'r> for AuthUser {
             }
         }
 
-        // If the id is valid from either method, build a response cookie
-        // and authorize the request
         if let Some(id) = found_id {
             let cookie = Cookie::build("secret", secret)
                 .path("/")

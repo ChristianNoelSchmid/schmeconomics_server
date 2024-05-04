@@ -9,7 +9,8 @@ CREATE TABLE categories (
     cat_name    TEXT    NOT NULL,
 
     bal         INT     NOT NULL,
-    refill_val  INT     NOT NULL
+    refill_val  INT     NOT NULL,
+    order INT NOT NULL
 );
 
 CREATE TABLE transactions (

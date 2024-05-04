@@ -1,15 +1,20 @@
-use std::{collections::HashMap, thread, time::Duration};
+use std::collections::HashMap;
 
+use lazy_static::lazy_static;
 use rocket::{get, http::Status, post, routes, serde::json::Json, Build, Rocket};
 use sqlite::Value;
 
 use crate::{
     auth::AuthUser,
     execute,
-    models::{Category, GetTransaction, GetTransactions, PostTransaction, User},
+    models::{Category, GetTransaction, GetTransactions, User, PostTransaction},
     query,
     sqlite::db,
 };
+
+lazy_static! {
+    static ref CLIENT: reqwest::Client = reqwest::Client::new();
+}
 
 const TRANSACTS_PER_QUERY: i64 = 25;
 
@@ -86,7 +91,7 @@ fn post_refill(user: AuthUser) -> Status {
 #[get("/categories")]
 fn get_categories(_user: AuthUser) -> Json<Vec<Category>> {
     let db = db();
-    let rows = query!(db, "SELECT * FROM categories ORDER BY id;");
+    let rows = query!(db, "SELECT * FROM categories ORDER BY ord;");
 
     return Json(
         rows.map(|row| Category {
@@ -154,10 +159,33 @@ fn get_transactions(_user: AuthUser, cat_id: i64, offset_group: i64) -> Json<Get
 }
 
 #[post("/transaction", format = "application/json", data = "<transact>")]
-fn post_transaction(transact: Json<PostTransaction>, user: AuthUser) -> Status {
+async fn post_transaction(transact: Json<PostTransaction>, user: AuthUser) -> Status {
+
+    // If the currency type is "EUR", get the currency conversion 
+    // from USD to EUR
+    let conv = if transact.currency == "EUR" {
+        let json = CLIENT.get("https://api.exchangerate-api.com/v4/latest/euro")
+            .send().await.unwrap()
+            .text().await.unwrap();
+
+        let root: serde_json::Value = serde_json::from_str(&json).unwrap();
+        let conv = root.get("rates")
+            .and_then(|value| value.get("USD"))
+            .and_then(|value| value.as_f64()).unwrap();
+
+        conv
+    } else {
+        1.0
+    };
+
     let am = transact.am.clone();
     let am = am.replace(".", "");
     let am = am.parse::<i64>().unwrap();
+
+    // Convert the currency
+    // This may be a cent or two off - it's fine for personal use
+    let am = f64::round(am as f64 * conv) as i64;
+
     return {
         let db = db();
         execute!(

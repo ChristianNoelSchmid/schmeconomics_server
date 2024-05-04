@@ -1,0 +1,6 @@
+# Schmeconomics Server
+Schmeconomics Server is a simple budgeting app written with Rust (Rocket). It's [front-end counterpart](https://github.com/christiannoelschmid/schmeconomics-client) is built with Vue.
+
+Schmeconomics Server allows its users to input transactions, which can add or remove funds from chosen categories. This allows users to keep track of their purchase history, and keep pools of balance for individual types of purchases. It also has built in currency conversion from USD to EUR.
+
+Schmeconomics Server has a simple authentication protocol - its API key is appended as a query parameter for unauthenticated users. Once authentication is confirmed, the server creates a cookie that has both the API key and the user's ID. **Note** that for large, robust APIs this is not a recommended way to handle authentication, as there are certain vulnerabilities. This is somewhat mitigated in the face that the cookies are HTTP-only and can only be created over TLS, but the vulnerability remains. However, because this is a project built for a small number of users and there is no sensitive data stored in the application's database, this vulnerability is not deemed to be substantial.

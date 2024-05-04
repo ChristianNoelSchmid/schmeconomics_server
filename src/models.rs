@@ -18,6 +18,7 @@ pub struct GetTransaction {
 
 #[derive(Deserialize)]
 pub struct PostTransaction {
+    pub currency: String, // USD or EUR
     pub cat_id: i64,
     pub am: String,
     pub notes: String,
