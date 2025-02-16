@@ -1,0 +1,6 @@
+{
+    "token_svc_config": {
+        "jwt_lifetime_s": 1024,
+        "refresh_token_lifetime_s": 1024
+    }
+}

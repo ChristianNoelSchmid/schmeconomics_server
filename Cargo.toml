@@ -6,11 +6,30 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+schmeconomics-auth = { path = '../schmeconomics-auth/' }
+schmeconomics-entities = { path = '../schmeconomics-entities/' }
+tokens-rs = { path = "../tokens-rs/" }
+utils-rs = { path = "../utils-rs/" }
+
+anyhow = "1.0.95"
+async-trait = "0.1.85"
+axum = { version = "0.8.1", features = ["macros"] }
+axum-macros = { version = "0.5.0-rc.1" }
+chrono = "0.4.39"
 dotenvy = "0.15"
 lazy_static = "1.4.0"
+log = "0.4.25"
+mockall = "0.13.1"
 regex = "1.6.0"
-reqwest = { version="0.11.18", default-features=false, features=["rustls-tls"] }
-rocket = { version = "0.5.0-rc.2", features = ["json", "tls"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.86"
-sqlite = "0.27.0"
+reqwest = "0.12.12"
+sea-orm = { version = "1.1.0", features = [ "sqlx-sqlite", "runtime-tokio-rustls" ]}
+serde = { version = "1.0.217", features = ["derive"] }
+serde_json = "1.0.137"
+thiserror = "2.0.11"
+tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
+tower-http = { version = "0.6.2", features = ["trace"] }
+tracing-subscriber = "0.3.19"
+uuid = { version = "1.12.0", features = ["v7"] }
+
+[dev-dependencies]
+lazy_static = "1.4.0"
