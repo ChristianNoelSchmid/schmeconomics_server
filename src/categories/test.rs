@@ -1,10 +1,11 @@
+use chrono::Utc;
 use lazy_static::lazy_static;
 use sea_orm::{sea_query::TableCreateStatement, ConnectionTrait, Database, DbBackend, DbConn, EntityTrait, Schema, Set};
 use uuid::Uuid;
 
 use schmeconomics_entities::{account_users, accounts, categories, prelude::*, users};
 
-use crate::categories::{models::DeleteCategoryModel, CategoryService, CreateCategoryModel, Error, UpdateCategoryModel};
+use crate::{categories::{models::DeleteCategoryModel, CategoryService, CreateCategoryModel, Error, UpdateCategoryModel}, db_utils::Role};
 
 use super::DbConnCategoryService;
 
@@ -45,6 +46,8 @@ async fn create_test_db(create_cats: bool) -> anyhow::Result<DbConn> {
         email_verified: Set(true),
         password_hash: Set(String::from("password")),
         name: Set(String::from("tester 1")),
+        created_on_utc: Set(Utc::now()),
+        two_factor_enabled: Set(false),
 
         ..Default::default()
     };
@@ -54,6 +57,7 @@ async fn create_test_db(create_cats: bool) -> anyhow::Result<DbConn> {
     // Create 1st test account
     let account = accounts::ActiveModel {
         id: Set(*TEST_ACCOUNT_1_ID),
+        ..Default::default()
     };
     Accounts::insert(account).exec(&db).await?;
 
@@ -64,6 +68,8 @@ async fn create_test_db(create_cats: bool) -> anyhow::Result<DbConn> {
         email_verified: Set(true),
         password_hash: Set(String::from("password")),
         name: Set(String::from("tester 2")),
+        created_on_utc: Set(Utc::now()),
+        two_factor_enabled: Set(false),
 
         ..Default::default()
     };
@@ -72,12 +78,16 @@ async fn create_test_db(create_cats: bool) -> anyhow::Result<DbConn> {
     // Create 2nd test account
     let account = accounts::ActiveModel {
         id: Set(*TEST_ACCOUNT_2_ID),
+        ..Default::default()
     };
     Accounts::insert(account).exec(&db).await?;
 
     let account_user = account_users::ActiveModel {
         account_id: Set(*TEST_ACCOUNT_1_ID),
         user_id: Set(*TEST_USER_1_ID),
+        role: Set(Role::Admin.to_string()),
+        verified: Set(true),
+        created_on: Set(Utc::now()),
     };
     AccountUsers::insert(account_user).exec(&db).await?;
 

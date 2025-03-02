@@ -8,7 +8,7 @@ use sea_orm::{prelude::Uuid, sea_query::TableCreateStatement, ConnectionTrait, D
 use schmeconomics_entities::{account_users, accounts, categories, prelude::*, users};
 use utils_rs::date_time_provider::MockDateTimeProvider;
 
-use crate::{currency_conv_provider::{MockCurrencyConversionProvider, USD_CURRENCY_TYPE}, db_utils::DbUtilsError, transactions::{models::{DeleteTransactionsModel, GetTransactionReqModel}, CreateTransactionModel, Error, TransactionService}};
+use crate::{currency_conv_provider::{MockCurrencyConversionProvider, USD_CURRENCY_TYPE}, db_utils::{DbUtilsError, Role}, transactions::{models::{DeleteTransactionsModel, GetTransactionReqModel}, CreateTransactionModel, Error, TransactionService}};
 
 use super::{models::CreateTransactionsModel, DbConnTransactionService, TransactionFilter};
 
@@ -52,6 +52,8 @@ async fn create_test_db() -> anyhow::Result<DbConn> {
         email_verified: Set(true),
         password_hash: Set(String::from("password")),
         name: Set(String::from("tester 1")),
+        created_on_utc: Set(Utc::now()),
+        two_factor_enabled: Set(false),
 
         ..Default::default()
     };
@@ -61,12 +63,16 @@ async fn create_test_db() -> anyhow::Result<DbConn> {
     // Create 1st test account
     let account = accounts::ActiveModel {
         id: Set(*TEST_ACCOUNT_1_ID),
+        ..Default::default()
     };
     Accounts::insert(account).exec(&db).await?;
 
     let account_user = account_users::ActiveModel {
         account_id: Set(*TEST_ACCOUNT_1_ID),
         user_id: Set(*TEST_USER_1_ID),
+        role: Set(Role::Admin.to_string()),
+        verified: Set(true),
+        created_on: Set(Utc::now()),
     };
     AccountUsers::insert(account_user).exec(&db).await?;
 
@@ -77,6 +83,8 @@ async fn create_test_db() -> anyhow::Result<DbConn> {
         email_verified: Set(true),
         password_hash: Set(String::from("password")),
         name: Set(String::from("tester 2")),
+        created_on_utc: Set(Utc::now()),
+        two_factor_enabled: Set(false),
 
         ..Default::default()
     };
@@ -85,6 +93,7 @@ async fn create_test_db() -> anyhow::Result<DbConn> {
     // Create 2nd test account
     let account = accounts::ActiveModel {
         id: Set(*TEST_ACCOUNT_2_ID),
+        ..Default::default()
     };
     Accounts::insert(account).exec(&db).await?;
 

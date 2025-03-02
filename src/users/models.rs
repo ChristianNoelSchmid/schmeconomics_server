@@ -1,4 +1,4 @@
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Debug, Deserialize)]
@@ -17,7 +17,7 @@ pub struct UpdateUserRequestModel {
     pub two_factor_enabled: Option<bool>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct UserResponseModel {
     pub id: Uuid,
     pub email: String,

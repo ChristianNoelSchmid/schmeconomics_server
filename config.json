@@ -2,5 +2,10 @@
     "token_svc_config": {
         "jwt_lifetime_s": 1024,
         "refresh_token_lifetime_s": 1024
+    },
+    "validation_svc_config": {
+        "verify_email_lt_s": 2592000,
+        "add_account_lt_s": 2592000
     }
+
 }

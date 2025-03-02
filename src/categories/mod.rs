@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use schmeconomics_entities::{categories, prelude::*};
 use sea_orm::{prelude::{Expr, Uuid}, sea_query::{ExprTrait, Func}, ActiveValue::NotSet, ColumnTrait, Condition, ConnectionTrait, DbConn, EntityTrait, FromQueryResult, IntoActiveModel, QueryFilter, QueryOrder, QuerySelect, Set, TransactionTrait};
 
-use crate::db_utils::validate_user_owns_account;
+use crate::db_utils::{validate_user_account_role, Role};
 
 use {error::*, models::*};
 
@@ -33,7 +33,7 @@ pub struct DbConnCategoryService {
 #[async_trait]
 impl CategoryService for DbConnCategoryService {
     async fn get_cats(&self, user_id: Uuid, account_id: Uuid) -> Result<Vec<GetCategoryModel>> {
-        validate_user_owns_account(&self.db, user_id, account_id).await?;
+        validate_user_account_role(&self.db, user_id, account_id, Role::Read).await?;
 
         let cats = Categories::find().filter(categories::Column::AccountId.eq(account_id))
             .order_by_asc(categories::Column::Order)
@@ -52,7 +52,7 @@ impl CategoryService for DbConnCategoryService {
         )
     }
     async fn create_cat(&self, user_id: Uuid, create_cat: CreateCategoryModel) -> Result<GetCategoryModel> {
-        validate_user_owns_account(&self.db, user_id, create_cat.account_id).await?;
+        validate_user_account_role(&self.db, user_id, create_cat.account_id, Role::Write).await?;
 
         // Create new transaction
         let tx = self.db.begin().await?;
@@ -95,7 +95,7 @@ impl CategoryService for DbConnCategoryService {
         )
     }
     async fn update_cat(&self, user_id: Uuid, cat: UpdateCategoryModel) -> Result<GetCategoryModel> {
-        validate_user_owns_account(&self.db, user_id, cat.account_id).await?;
+        validate_user_account_role(&self.db, user_id, cat.account_id, Role::Write).await?;
 
         let tx = self.db.begin().await?;
         // Create a formatted category name,
@@ -136,7 +136,7 @@ impl CategoryService for DbConnCategoryService {
     }
 
     async fn delete_cat(&self, user_id: Uuid, delete_cat: DeleteCategoryModel) -> Result<()> {
-        validate_user_owns_account(&self.db, user_id, delete_cat.account_id).await?;
+        validate_user_account_role(&self.db, user_id, delete_cat.account_id, Role::Write).await?;
 
         // Create a new transaction
         let tx = self.db.begin().await?;
@@ -159,7 +159,7 @@ impl CategoryService for DbConnCategoryService {
         };
     }
     async fn order_cats(&self, user_id: Uuid, cats: OrderCategoriesModel) -> Result<()> {
-        validate_user_owns_account(&self.db, user_id, cats.account_id).await?;
+        validate_user_account_role(&self.db, user_id, cats.account_id, Role::Write).await?;
 
         let mut ord_set = HashSet::new();
         let mut id_set = HashSet::new();

@@ -6,7 +6,7 @@ use sea_orm::{prelude::{Expr, Uuid}, ColumnTrait, DbConn, EntityTrait, Paginator
 use schmeconomics_entities::{categories, prelude::*, transactions};
 use utils_rs::date_time_provider::DynDateTimeProvider;
 
-use crate::{currency_conv_provider::{DynCurrencyConversionProvider, USD_CURRENCY_TYPE}, db_utils::validate_user_owns_account};
+use crate::{currency_conv_provider::{DynCurrencyConversionProvider, USD_CURRENCY_TYPE}, db_utils::{validate_user_account_role, Role}};
 
 use {error::*, models::*};
 
@@ -65,7 +65,7 @@ impl TransactionService for DbConnTransactionService {
         user_id: Uuid, 
         get_req: GetTransactionReqModel,
     ) -> Result<Vec<TransactionModel>> {
-        validate_user_owns_account(&self.db, user_id, get_req.account_id).await?;
+        validate_user_account_role(&self.db, user_id, get_req.account_id, Role::Read).await?;
         let filters = get_req.filters.unwrap_or(vec![]);
         let page_size = get_req.page_size.unwrap_or(15);
         let page_idx = get_req.page_idx.unwrap_or(0);
@@ -91,7 +91,7 @@ impl TransactionService for DbConnTransactionService {
         user_id: Uuid, 
         create_req: CreateTransactionsModel,
     ) -> Result<()> {
-        validate_user_owns_account(&self.db, user_id, create_req.account_id).await?;
+        validate_user_account_role(&self.db, user_id, create_req.account_id, Role::Write).await?;
 
         // Mapping of category total balance changes
         let mut totals = HashMap::new();
@@ -141,7 +141,7 @@ impl TransactionService for DbConnTransactionService {
         user_id: Uuid, 
         delete_req: DeleteTransactionsModel,
     ) -> Result<()> {
-        validate_user_owns_account(&self.db, user_id, delete_req.account_id).await?;
+        validate_user_account_role(&self.db, user_id, delete_req.account_id, Role::Write).await?;
 
         // Get all transactions attempting to be deleted
         let txs = Transactions::find().filter(transactions::Column::Id.is_in(delete_req.tx_ids.clone()))

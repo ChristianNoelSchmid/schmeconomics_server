@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 schmeconomics-auth = { path = '../schmeconomics-auth/' }
 schmeconomics-entities = { path = '../schmeconomics-entities/' }
+send-email-rs = { path = "../send-email-rs/" }
 tokens-rs = { path = "../tokens-rs/" }
 utils-rs = { path = "../utils-rs/" }
 
@@ -25,10 +26,12 @@ reqwest = "0.12.12"
 sea-orm = { version = "1.1.0", features = [ "sqlx-sqlite", "runtime-tokio-rustls" ]}
 serde = { version = "1.0.217", features = ["derive"] }
 serde_json = "1.0.137"
+tera = "1.20.0"
 thiserror = "2.0.11"
 tokio = { version = "1.43.0", features = ["macros", "rt-multi-thread"] }
 tower-http = { version = "0.6.2", features = ["trace"] }
 tracing-subscriber = "0.3.19"
+utoipa = "5.3.1"
 uuid = { version = "1.12.0", features = ["v7"] }
 
 [dev-dependencies]

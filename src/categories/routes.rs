@@ -5,13 +5,13 @@ use crate::{auth::middleware::AuthUser, categories::Result, state::AppState};
 
 use super::{models::DeleteCategoryModel, CreateCategoryModel, DynCategoryService, GetCategoryModel, UpdateCategoryModel};
 
-pub fn routes(app_state: AppState) -> Router {
+pub fn routes(state: AppState) -> Router {
     Router::new()
         .route("/{account_id}", get(get_categories))
         .route("/", post(post_category))  
         .route("/", put(update_category))
         .route("/", delete(delete_category))
-        .with_state(app_state)
+        .with_state(state)
 }
 
 pub async fn get_categories(

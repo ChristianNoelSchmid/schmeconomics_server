@@ -1,5 +1,6 @@
 pub mod error;
 pub mod models;
+pub mod routes;
 
 use std::sync::Arc;
 
@@ -129,7 +130,7 @@ impl UserService for DbConnUserService {
 }
 
 impl DbConnUserService {
-    fn new_dyn(db: DbConn, password_hasher: DynPasswordHasher) -> Self {
-        Self { db, password_hasher, }
+    pub fn new_dyn(db: DbConn, password_hasher: DynPasswordHasher) -> DynUserService {
+        Arc::new(Self { db, password_hasher, })
     }
 }
